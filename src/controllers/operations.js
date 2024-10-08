@@ -14,8 +14,8 @@ export const participants = async (req, res) => {
             const student = await UserModel.findById(new mongoose.Types.ObjectId(s));
             if (!student) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "User not found", data: { id: id } });
             student.email = maskEmail(student.email);
-            student.mobileNumber = maskPhone(mobileNumber);
-            student.whatsappNumber = maskPhone(whatsappNumber);
+            student.mobileNumber = maskPhone(student.mobileNumber);
+            student.whatsappNumber = maskPhone(student.whatsappNumber);
             return res.status(StatusCodes.OK).json({ success: true, message: "Student data fetched successfully", data: student });
         }
         // If no ID, populate visits for the authenticated user

@@ -1,7 +1,9 @@
 import { StatusCodes } from "http-status-codes";
-import { UserModel } from "../models/User.js";
+import { AttendeeModel, UserModel } from "../models/User.js";
 import { VisitModel } from "../models/Visit.js";
 import mongoose from "mongoose";
+import { sendWhatsAppMessage } from "../utils/whatsapp.js";
+import { generateCloudinaryQRCode } from "../utils/workers.js";
 
 
 export const participants = async (req, res) => {
@@ -9,18 +11,16 @@ export const participants = async (req, res) => {
     try {
         // If ID is provided, fetch the user with specified fields
         if (s) {
-            const student = await UserModel.findById(new mongoose.Types.ObjectId(s), "-email -phone");
+            const student = await UserModel.findById(new mongoose.Types.ObjectId(s), "");
             if (!student) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "User not found", data: { id: id } });
             student.email = maskEmail(student.email);
-            if (student.phone) student.phone.number = maskPhone(student.phone.number);
+            student.phone = maskPhone(phone.number);
             return res.status(StatusCodes.OK).json({ success: true, message: "Student data fetched successfully", data: student });
         }
         // If no ID, populate visits for the authenticated user
         await VisitModel.populate(req.user, { path: "visits" });
         await UserModel.populate(req.user, { path: "visits" });
-        req.user.visits = req.user.visits.map((visit) => {
-            return { ...visit, email: maskEmail(visit.email), phone: { number: maskPhone(visit.phone.number), countryCode: visit.phone.countryCode } }
-        })
+        req.user.visits = req.user.visits.map((visit) => { return { ...visit, email: maskEmail(visit.email), phone: maskPhone(visit.phone) } })
         return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: req.user });
 
     } catch (error) {
@@ -50,14 +50,40 @@ export const visit = async (req, res) => {
 }
 
 export const zohoFormsWebhook = async (req, res, next) => {
-    console.log({
-        "Body": req.body,
-        "Query Params": req.query,
-        "Headers": req.headers,
-        "Request Method": req.method,
-        "Request URL": req.originalUrl,
-        "IP Address": req.ip,
-        "Timestamp": new Date().toISOString()
-    });
-    res.status(200).send('Webhook received successfully');
+    const user = await AttendeeModel.create({
+        name: `${req.body.firstName} ${req.body.lastName}`,
+        email: req.body.email,
+        about: req.body.about,
+        city: req.body.city,
+        whatsappNumber: req.body.whatsappNumber,
+        mobileNumber: req.body.mobileNumber,
+        ticketNumber: req.body.uniqueID,
+        college: req.body.college,
+        degree: req.body.degree,
+        gradepercentage: req.body.gradepercentage,
+        graduation: req.body.graduation,
+        year: req.body.year,
+        educationBudget: req.body.educationBudget,
+        country: req.body.country,
+        course: req.body.course,
+        educationloan: req.body.educationloan,
+        aptitude: req.body.aptitude,
+        gre: req.body.gre,
+        gmat: req.body.gmat,
+        sat: req.body.sat,
+        act: req.body.act,
+        language: req.body.language,
+        toefl: req.body.toefl,
+        pte: req.body.pte,
+        ielts: req.body.ielts,
+        duolingo: req.body.duolingo,
+        leadSource: req.body.leadSource,
+        addedTime: req.body.addedTime
+    })
+    user.qrCodeUrl = await generateCloudinaryQRCode(`${process.env.URL}?s=${user._id}&p=true&t=${user.ticketNumber}`)
+    await user.save()
+    let waResp
+    if (user.whatsappNumber) waResp = await sendWhatsAppMessage(user.name, user.whatsappNumber, user.qrCodeUrl);
+    if (!waResp.id) waResp = await sendWhatsAppMessage(user.name, user.mobileNumber, user.qrCodeUrl);
+    res.status(StatusCodes.OK).send('Webhook received successfully');
 }

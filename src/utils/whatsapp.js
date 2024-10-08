@@ -29,9 +29,7 @@ export const sendWhatsAppMessage = async (name, phoneNumber, qrCodeUrl) => {
         });
         return response.data
     } catch (error) {
-        console.error(error);
-        console.error('Error sending WhatsApp message:', error.response ? error.response.data : error.message);
-        throw new Error(error);
+        return { error: true, message: error.message }
     }
 }
 

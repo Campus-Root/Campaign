@@ -60,7 +60,7 @@ app.get("/", (req, res) => {
 });
 import indexRouter from "./routers/index.js";
 app.use("/api/v1", indexRouter);
-app.post('/webhook/vi/participant-registration',zohoFormsWebhook)
+app.post('/webhook/v1/participant-registration',zohoFormsWebhook)
 // Error Handlers
 import { notFoundMiddleware } from "./middleware/not-found.js";
 app.use(notFoundMiddleware);

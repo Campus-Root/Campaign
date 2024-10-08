@@ -9,6 +9,7 @@ import { generateCloudinaryQRCode, maskEmail, maskPhone } from "../utils/workers
 export const participants = async (req, res) => {
     const { s } = req.query
     try {
+        
         if (s) {
             const student = await UserModel.findById(new mongoose.Types.ObjectId(s), "-logs -visits -qrCodeUrl");
             if (!student) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "User not found", data: { id: id } });
@@ -20,24 +21,11 @@ export const participants = async (req, res) => {
         }
         else if (req.user.userType === "Admin") {
             const users = await UserModel.find({ _id: { $ne: req.user._id } }, "-logs -qrCodeUrl");
+            let Admin = JSON.parse(JSON.stringify(req.user))
             users.forEach(ele => {
-                req.user.visits.push({
-                    participants: [
-                        { ...ele }
-                    ],
-                    notes: "null",
-                    details: [
-                        {
-                            "label": "null",
-                            "data": "null"
-                        }, {
-                            "label": "null",
-                            "data": "null"
-                        },
-                    ]
-                })
+                Admin.visits.push({ participants: [{ ...JSON.parse(JSON.stringify(ele)) }], notes: "null", details: [{ "data": "null" }, { "label": "null", "data": "null" },] })
             });
-
+            return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: Admin });
         }
         await VisitModel.populate(req.user, { path: "visits" });
         await UserModel.populate(req.user, { path: "visits.participants", select: "-logs -visits" });

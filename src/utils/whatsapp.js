@@ -7,7 +7,7 @@ export const sendWhatsAppMessage = async (name, phoneNumber, qrCodeUrl) => {
         campaignName: "api-test",
         to: phoneNumber,
         type: "template",
-        templateName: "viz_test",
+        templateName: "mbnr_new_viz",
         components: {
             header: {
                 type: "image",

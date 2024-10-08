@@ -60,11 +60,12 @@ app.get("/", (req, res) => {
 });
 import indexRouter from "./routers/index.js";
 app.use("/api/v1", indexRouter);
-
+app.post('/webhook/vi/participant-registration',zohoFormsWebhook)
 // Error Handlers
 import { notFoundMiddleware } from "./middleware/not-found.js";
 app.use(notFoundMiddleware);
 import { errorHandlerMiddleware } from './middleware/errorHandler.js'; // Use the correct file extension
+import { zohoFormsWebhook } from "./controllers/operations.js";
 app.use(errorHandlerMiddleware);
 
 const port = process.env.PORT || 5000;

@@ -24,12 +24,12 @@ export const login = async (req, res) => {
   const { email, password } = req.body;
   if (!email) throw generateAPIError("Please provide Email", StatusCodes.BAD_REQUEST);
   if (!password) throw generateAPIError("Please provide Password", StatusCodes.BAD_REQUEST);
-  const user = await UserModel.findOne({ email: email });
+  const user = await UserModel.findOne({ email: email }, "role userType password");
   if (!user) throw generateAPIError("Invalid Credentials", StatusCodes.UNAUTHORIZED);
   if (!await user.comparePassword(password)) throw generateAPIError("Invalid Credentials", StatusCodes.UNAUTHORIZED);
   const tokenUser = { ui: user._id };
   const token = generateJwt(tokenUser, process.env.JWT_LIFETIME);
-  res.status(StatusCodes.OK).json({ success: true, message: "Login successfully", data: { AccessToken: token } });
+  res.status(StatusCodes.OK).json({ success: true, message: "Login successfully", data: { AccessToken: token, role: user.role, userType: user.userType } });
 };
 
 export const hostRegister = async (req, res) => {

@@ -32,13 +32,12 @@ export const generateCloudinaryQRCode = async (text) => {
         // Generate QR code as a data URL
         const qrCodeData = await QRCode.toDataURL(text);
         cloudinary.config({
-            cloud_name: 'decw3lpd2', // Replace with your Cloudinary cloud name
-            api_key: '874754171659833',       // Replace with your Cloudinary API key
-            api_secret: 'kr8lLaCbXzNQbtv2Ims3vpFS4uQ', // Replace with your Cloudinary API secret
-        });
+            cloud_name: Process.env.CLOUDINARY_cloud_name,
+            api_key: Process.env.CLOUDINARY_api_key,
+            api_secret: Process.env.CLOUDINARY_api_secret
+        })
         // Upload the QR code to Cloudinary
         const result = await cloudinary.uploader.upload(qrCodeData, { folder: 'qr_codes', });
-
         return result.secure_url;
     } catch (error) {
         console.error('Failed to generate QR code:', error);

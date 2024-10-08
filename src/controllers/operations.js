@@ -1,6 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import { UserModel } from "../models/User.js";
 import { VisitModel } from "../models/Visit.js";
+import mongoose from "mongoose";
 
 
 export const participants = async (req, res) => {
@@ -8,7 +9,7 @@ export const participants = async (req, res) => {
     try {
         // If ID is provided, fetch the user with specified fields
         if (id) {
-            const student = await UserModel.findById(id, "-email -phone");
+            const student = await UserModel.findById(mongoose.Types.ObjectId(id), "-email -phone");
             if (!student) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "User not found", data: { id: id } });
             student.email = maskEmail(student.email);
             if (student.phone) student.phone.number = maskPhone(student.phone.number);
@@ -41,8 +42,8 @@ export const visit = async (req, res) => {
             visit.details = visit.details;
         } else visit = new VisitModel({ participants: [req.user._id, visitorId], notes, details });
         await visit.save();
-        await UserModel.findByIdAndUpdate(req.user._id, { $addToSet: { visitIds: visit._id } });
-        await UserModel.findByIdAndUpdate(visitorId, { $addToSet: { visitIds: visit._id } });
+        await UserModel.findByIdAndUpdate(mongoose.Types.ObjectId(req.user._id), { $addToSet: { visitIds: visit._id } });
+        await UserModel.findByIdAndUpdate(mongoose.Types.ObjectId(visitorId), { $addToSet: { visitIds: visit._id } });
         return res.status(StatusCodes.OK).json({ success: true, message: "Visit processed successfully", data: visit });
     } catch (error) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: "Something went wrong", error: error.message });

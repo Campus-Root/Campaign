@@ -24,15 +24,9 @@ const whitelist = [
 ];
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin) {
-      // for mobile app and postman client
-      return callback(null, true);
-    }
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
+    if (!origin) return callback(null, true);
+    if (whitelist.indexOf(origin) !== -1) callback(null, true);
+    else callback(new Error("Not allowed by CORS"));
   },
   credentials: true, //access-control-allow-credentials:true
   optionSuccessStatus: 200,

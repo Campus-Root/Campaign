@@ -1,0 +1,63 @@
+import { StatusCodes } from "http-status-codes";
+import { generateAPIError } from "../errors/apiError.js";
+import { AdminModel, AttendeeModel, ExhibitorModel, OrganizerModel, UserModel } from "../models/User.js";
+import { generateJwt } from "../utils/generateToken.js";
+import { sendWhatsAppMessage } from "../utils/whatsapp.js";
+import { generateCloudinaryQRCode, generateQRCode } from "../utils/workers.js";
+import { cookieOptions } from "../index.js";
+export const AttendeeRegister = async (req, res) => {
+  const { email, name, phone, about, sessionsRegistered } = req.body;
+  const emailAlreadyExists = await UserModel.findOne({ email: email });
+  if (emailAlreadyExists) throw generateAPIError("Email already exist", StatusCodes.BAD_REQUEST);
+  const user = await AttendeeModel.create({ email, name, phone, about: about ? about : null, sessionsRegistered: sessionsRegistered ? sessionsRegistered : null, ticketNumber: 1 });
+  // Generate QR code as a data URL
+  const qrCodeUrl = await generateCloudinaryQRCode(`${process.env.URL}?s=${user._id}&p=true`);
+  user.qrCodeUrl = qrCodeUrl
+  await user.save()
+  const resp = await sendWhatsAppMessage(name, phone.countryCode + phone.number, qrCodeUrl);
+  const tokenUser = { name: user.name, userId: user._id, email: email };
+  const token = generateJwt(tokenUser, process.env.JWT_LIFETIME)
+  res.status(StatusCodes.CREATED).json({ success: true, message: "Register successfully", data: { token: token }, });
+};
+
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+  if (!email) throw generateAPIError("Please provide Email", StatusCodes.BAD_REQUEST);
+  if (!password) throw generateAPIError("Please provide Password", StatusCodes.BAD_REQUEST);
+  const user = await UserModel.findOne({ email: email });
+  if (!user) throw generateAPIError("Invalid Credentials", StatusCodes.UNAUTHORIZED);
+  if (!await user.comparePassword(password)) throw generateAPIError("Invalid Credentials", StatusCodes.UNAUTHORIZED);
+  const tokenUser = { ui: user._id };
+  const token = generateJwt(tokenUser, process.env.JWT_LIFETIME);
+  res.status(StatusCodes.OK).json({ success: true, message: "Login successfully", data: { AccessToken: token } });
+};
+
+export const hostRegister = async (req, res) => {
+  const { email, password, name, institutionName, boothNumber, role, userType } = req.body;
+  const emailAlreadyExists = await UserModel.findOne({ email: email });
+  if (emailAlreadyExists) throw generateAPIError("Email already exist", StatusCodes.BAD_REQUEST);
+  let user;
+  switch (userType) {
+    case "Exhibitor":
+      user = await ExhibitorModel.create({ email, password, name, institutionName, boothNumber });
+      break;
+    case "Organizer":
+      user = await OrganizerModel.create({ email, password, name, institutionName, role });
+      break;
+    default: throw generateAPIError("invalid userType", StatusCodes.BAD_REQUEST);
+  }
+  res.status(StatusCodes.CREATED).json({
+    success: true, message: "Register successfully", data: {
+      user: {
+        "name": user.name,
+        "email": user.email,
+        "_id": user._id,
+        "userType": user.userType,
+        "boothNumber": user.boothNumber,
+        "institutionName": user.institutionName,
+        "role": user.role
+      }
+    }
+  });
+};
+

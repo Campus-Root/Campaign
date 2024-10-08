@@ -8,11 +8,13 @@ const UserSchema = mongoose.Schema(
     password: { type: String, minlength: 6, trim: true, },
     phone: { countryCode: { type: String }, number: { type: String } },
     about: { type: String },
+    visits: [{ type: mongoose.Schema.Types.ObjectId, ref: "Visit" }],
     logs: [{ action: { type: String }, time: { type: Date, default: new Date() }, details: { type: String } }],
   },
   { discriminatorKey: 'userType' },
   { timestamps: true }
 );
+UserSchema.methods.comparePassword = async function (candidatePassword) { return await bcrypt.compare(candidatePassword, this.password); }
 UserSchema.pre("save", async function (next) {
   const modifiedFields = this.modifiedPaths();
   // Log modifications
@@ -24,7 +26,6 @@ UserSchema.pre("save", async function (next) {
   if (this.isModified("password")) this.password = await bcrypt.hash(this.password, await bcrypt.genSalt(10));
   next();
 });
-UserSchema.methods.comparePassword = async function (candidatePassword) { return await bcrypt.compare(candidatePassword, this.password); }
 import { OrganizerRoleEnum } from "../utils/enum.js";
 const AttendeeSchema = mongoose.Schema({
   qrCodeUrl: { type: String },
@@ -33,8 +34,8 @@ const AttendeeSchema = mongoose.Schema({
 });
 const OrganizerSchema = mongoose.Schema({
   role: { type: String, enum: { values: Object.values(OrganizerRoleEnum), message: "Invalid role" } },
-  company: { type: String, required: true },
-  eventName: { type: String, required: true },
+  institutionName: { type: String, required: true },
+  // eventName: { type: String, required: true },
   eventsManaged: [{ type: String }] // List of events they have organized
 });
 const AdminSchema = mongoose.Schema({
@@ -44,7 +45,7 @@ const AdminSchema = mongoose.Schema({
 const ExhibitorSchema = mongoose.Schema({
   boothNumber: { type: String, required: true },
   productsShowcased: [{ type: String }], // List of products being showcased
-  company: { type: String, required: true }
+  institutionName: { type: String, required: true }
 });
 export const UserModel = mongoose.model("User", UserSchema);
 export const ExhibitorModel = UserModel.discriminator("Exhibitor", ExhibitorSchema);

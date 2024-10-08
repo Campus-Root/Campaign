@@ -44,3 +44,18 @@ export const generateCloudinaryQRCode = async (text) => {
         throw error;
     }
 }
+
+// Helper function to mask email
+export const maskEmail = (email) => {
+    if (!email) return "";
+    const [localPart, domain] = email.split("@");
+    const maskedLocalPart = localPart.slice(0, 2) + "*****";
+    return maskedLocalPart + "@" + domain;
+  };
+  
+  // Helper function to mask phone number
+export const maskPhone = (phone) => {
+    if (!phone) return "";
+    const visibleDigits = phone.slice(-4); // Show last 4 digits
+    return "*****" + visibleDigits;
+  };

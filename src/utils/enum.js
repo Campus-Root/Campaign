@@ -1,7 +1,9 @@
 export const OrganizerRoleEnum = Object.freeze({
-    EVENT_MANAGER: "Event Manager",
-    COORDINATOR: "Coordinator",
-    VOLUNTEER: "Volunteer",
-    SPONSOR_LIAISON: "Sponsor Liaison",
-    TECHNICAL_SUPPORT: "Technical Support"
-  });
+  RECEPTION: "Reception",
+  COUNSELLOR: "Counsellor",
+  EDUCATION_LOAN: "Education_Loan",
+  APPLICATIONS: "Applications",
+  SCHOLARSHIP: "Scholarship",
+  VOLUNTEER: "Volunteer"
+});
+export const userTypes = ["Admin", "Organizer", "Exhibitor"]

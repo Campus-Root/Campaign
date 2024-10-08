@@ -6,6 +6,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const root_dir = __dirname.split("src")[0];
 import cors from "cors";
+import bodyParser from 'body-parser';
+import cookieParser from "cookie-parser";
 import { connectDB } from "./utils/connectDB.js";
 import morgan from "morgan";
 import rateLimiter from "express-rate-limit";
@@ -38,7 +40,11 @@ const corsOptions = {
   allowedHeaders: "*",
   "Access-Control-Request-Headers": "*",
 };
-
+export const cookieOptions = {
+	secure: true,
+	httpOnly: true,
+	sameSite: 'strict'
+}
 app.set("trust proxy", 1);
 app.use(
   rateLimiter({
@@ -46,6 +52,8 @@ app.use(
     max: 60,
   })
 );
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(cors(corsOptions));
 app.use(helmet());
 app.use(mongoSanitize());

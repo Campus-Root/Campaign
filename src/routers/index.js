@@ -1,23 +1,13 @@
 import { Router } from 'express';
-import authRouter from "./authRoutes.js";
-// import studentRouter from "./student.js"
-// import counsellorRouter from "./counsellor.js"
-// import adminRouter from "./admin.js"
-// import developerRouter from "./developer.js"
-// import communicationRouter from "./communication.js"
-// import publicRouter from "./public.js"
-// import memberRouter from "./member.js"
-// import processCoordinatorRouter from "./processCoordinator.js"
 const router = Router();
+import { AttendeeRegister, hostRegister, login } from "../controllers/authController.js";
+import { attendeeRegisterSchema } from "../lib/joiSchemas/account.schema.js";
+import { JoiValidator } from "../lib/joiSchemas/index.js";
+import { auth, isAdmin } from "../middleware/auth.js";
+import { participants } from '../controllers/operations.js';
 
-router.use("/auth", authRouter);
-// router.use("/student", studentRouter);
-// router.use("/member",memberRouter);
-// router.use("/admin", adminRouter);
-// router.use("/developer", developerRouter);
-// router.use("/counsellor", counsellorRouter);
-// router.use("/process-coordinator", processCoordinatorRouter);
-// router.use("/communication", communicationRouter);
-// router.use("/public", publicRouter)
-
-export default router;
+router.post("/auth/register", JoiValidator(attendeeRegisterSchema), AttendeeRegister);
+router.post("/auth/host-register", auth, isAdmin, hostRegister)
+router.post("/auth/host-login", login)
+router.post("/participants/:id", auth, participants)
+export default router

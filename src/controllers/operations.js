@@ -5,17 +5,16 @@ import mongoose from "mongoose";
 
 
 export const participants = async (req, res) => {
-    const { id } = req.params;
+    const { s } = req.query
     try {
         // If ID is provided, fetch the user with specified fields
-        if (id) {
-            const student = await UserModel.findById(mongoose.Types.ObjectId(id), "-email -phone");
+        if (s) {
+            const student = await UserModel.findById(new mongoose.Types.ObjectId(s), "-email -phone");
             if (!student) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "User not found", data: { id: id } });
             student.email = maskEmail(student.email);
             if (student.phone) student.phone.number = maskPhone(student.phone.number);
             return res.status(StatusCodes.OK).json({ success: true, message: "Student data fetched successfully", data: student });
         }
-
         // If no ID, populate visits for the authenticated user
         await VisitModel.populate(req.user, { path: "visits" });
         await UserModel.populate(req.user, { path: "visits" });
@@ -42,11 +41,10 @@ export const visit = async (req, res) => {
             visit.details = visit.details;
         } else visit = new VisitModel({ participants: [req.user._id, visitorId], notes, details });
         await visit.save();
-        await UserModel.findByIdAndUpdate(mongoose.Types.ObjectId(req.user._id), { $addToSet: { visitIds: visit._id } });
-        await UserModel.findByIdAndUpdate(mongoose.Types.ObjectId(visitorId), { $addToSet: { visitIds: visit._id } });
+        await UserModel.findByIdAndUpdate(new mongoose.Types.ObjectId(req.user._id), { $addToSet: { visitIds: visit._id } });
+        await UserModel.findByIdAndUpdate(new mongoose.Types.ObjectId(visitorId), { $addToSet: { visitIds: visit._id } });
         return res.status(StatusCodes.OK).json({ success: true, message: "Visit processed successfully", data: visit });
     } catch (error) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: "Something went wrong", error: error.message });
     }
-
 }

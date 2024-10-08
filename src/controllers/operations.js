@@ -9,18 +9,38 @@ import { generateCloudinaryQRCode, maskEmail, maskPhone } from "../utils/workers
 export const participants = async (req, res) => {
     const { s } = req.query
     try {
-        // If ID is provided, fetch the user with specified fields
         if (s) {
-            const student = await UserModel.findById(new mongoose.Types.ObjectId(s), "-logs");
+            const student = await UserModel.findById(new mongoose.Types.ObjectId(s), "-logs -visits -qrCodeUrl");
             if (!student) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "User not found", data: { id: id } });
             student.email = maskEmail(student.email);
             student.mobileNumber = maskPhone(student.mobileNumber);
             student.whatsappNumber = maskPhone(student.whatsappNumber);
-            return res.status(StatusCodes.OK).json({ success: true, message: "Student data fetched successfully", data: student });
+            let visit = await VisitModel.findOne({ participants: { $all: [req.user._id, student._id] } });
+            return res.status(StatusCodes.OK).json({ success: true, message: "Student data fetched successfully", data: student, AlreadyVisitedDetails: visit || null });
         }
-        // If no ID, populate visits for the authenticated user
+        else if (req.user.userType === "Admin") {
+            const users = await UserModel.find({ _id: { $ne: req.user._id } }, "-logs -qrCodeUrl");
+            users.forEach(ele => {
+                req.user.visits.push({
+                    participants: [
+                        { ...ele }
+                    ],
+                    notes: "null",
+                    details: [
+                        {
+                            "label": "null",
+                            "data": "null"
+                        }, {
+                            "label": "null",
+                            "data": "null"
+                        },
+                    ]
+                })
+            });
+
+        }
         await VisitModel.populate(req.user, { path: "visits" });
-        await UserModel.populate(req.user, { path: "visits.participants", select: "-logs" });
+        await UserModel.populate(req.user, { path: "visits.participants", select: "-logs -visits" });
         for (const visit of req.user.visits) {
             for (const person of visit.participants) {
                 person.email = maskEmail(person.email);
@@ -28,7 +48,6 @@ export const participants = async (req, res) => {
                 person.whatsappNumber = maskPhone(person.whatsappNumber);
             }
         }
-        // req.user.visits = req.user.visits.map((ele) => { return { ...ele, email: maskEmail(ele.email), mobileNumber: maskPhone(ele.mobileNumber) } })
         return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: req.user });
 
     } catch (error) {

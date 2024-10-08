@@ -11,7 +11,7 @@ export const participants = async (req, res) => {
     try {
         // If ID is provided, fetch the user with specified fields
         if (s) {
-            const student = await UserModel.findById(new mongoose.Types.ObjectId(s));
+            const student = await UserModel.findById(new mongoose.Types.ObjectId(s), "-logs");
             if (!student) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "User not found", data: { id: id } });
             student.email = maskEmail(student.email);
             student.mobileNumber = maskPhone(student.mobileNumber);
@@ -20,7 +20,14 @@ export const participants = async (req, res) => {
         }
         // If no ID, populate visits for the authenticated user
         await VisitModel.populate(req.user, { path: "visits" });
-        await UserModel.populate(req.user, { path: "visits" });
+        await UserModel.populate(req.user, { path: "visits.participants", select: "-logs" });
+        for (const visit of req.user.visits) {
+            for (const person of visit.participants) {
+                person.email = maskEmail(person.email);
+                person.mobileNumber = maskPhone(person.mobileNumber);
+                person.whatsappNumber = maskPhone(person.whatsappNumber);
+            }
+        }
         // req.user.visits = req.user.visits.map((ele) => { return { ...ele, email: maskEmail(ele.email), mobileNumber: maskPhone(ele.mobileNumber) } })
         return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: req.user });
 
@@ -40,10 +47,12 @@ export const visit = async (req, res) => {
         if (visit) {
             visit.notes = visit.notes;
             visit.details = visit.details;
-        } else visit = new VisitModel({ participants: [req.user._id, visitorId], notes, details });
-        await visit.save();
-        await UserModel.findByIdAndUpdate(new mongoose.Types.ObjectId(req.user._id), { $addToSet: { visitIds: visit._id } });
-        await UserModel.findByIdAndUpdate(new mongoose.Types.ObjectId(visitorId), { $addToSet: { visitIds: visit._id } });
+            await visit.save();
+            return res.status(StatusCodes.OK).json({ success: true, message: "Visit processed successfully", data: visit });
+        }
+        visit = await VisitModel.create({ participants: [req.user._id, visitorId], notes, details });
+        await UserModel.findByIdAndUpdate(new mongoose.Types.ObjectId(req.user._id), { $addToSet: { visits: visit._id } });
+        await UserModel.findByIdAndUpdate(new mongoose.Types.ObjectId(visitorId), { $addToSet: { visits: visit._id } });
         return res.status(StatusCodes.OK).json({ success: true, message: "Visit processed successfully", data: visit });
     } catch (error) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: "Something went wrong", error: error.message });

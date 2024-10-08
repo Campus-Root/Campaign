@@ -3,7 +3,7 @@ import { AttendeeModel, UserModel } from "../models/User.js";
 import { VisitModel } from "../models/Visit.js";
 import mongoose from "mongoose";
 import { sendWhatsAppMessage } from "../utils/whatsapp.js";
-import { generateCloudinaryQRCode } from "../utils/workers.js";
+import { generateCloudinaryQRCode, maskEmail, maskPhone } from "../utils/workers.js";
 
 
 export const participants = async (req, res) => {

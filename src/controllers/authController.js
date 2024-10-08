@@ -1,10 +1,8 @@
 import { StatusCodes } from "http-status-codes";
 import { generateAPIError } from "../errors/apiError.js";
-import { AdminModel, AttendeeModel, ExhibitorModel, OrganizerModel, UserModel } from "../models/User.js";
+import { ExhibitorModel, OrganizerModel, UserModel } from "../models/User.js";
 import { generateJwt } from "../utils/generateToken.js";
-import { sendWhatsAppMessage } from "../utils/whatsapp.js";
-import { generateCloudinaryQRCode, generateQRCode } from "../utils/workers.js";
-import { cookieOptions } from "../index.js";
+
 
 
 export const login = async (req, res) => {

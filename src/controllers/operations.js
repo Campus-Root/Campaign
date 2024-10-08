@@ -11,16 +11,17 @@ export const participants = async (req, res) => {
     try {
         // If ID is provided, fetch the user with specified fields
         if (s) {
-            const student = await UserModel.findById(new mongoose.Types.ObjectId(s), "");
+            const student = await UserModel.findById(new mongoose.Types.ObjectId(s));
             if (!student) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "User not found", data: { id: id } });
             student.email = maskEmail(student.email);
-            student.phone = maskPhone(phone.number);
+            student.mobileNumber = maskPhone(mobileNumber);
+            student.whatsappNumber = maskPhone(whatsappNumber);
             return res.status(StatusCodes.OK).json({ success: true, message: "Student data fetched successfully", data: student });
         }
         // If no ID, populate visits for the authenticated user
         await VisitModel.populate(req.user, { path: "visits" });
         await UserModel.populate(req.user, { path: "visits" });
-        req.user.visits = req.user.visits.map((visit) => { return { ...visit, email: maskEmail(visit.email), phone: maskPhone(visit.phone) } })
+        // req.user.visits = req.user.visits.map((ele) => { return { ...ele, email: maskEmail(ele.email), mobileNumber: maskPhone(ele.mobileNumber) } })
         return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: req.user });
 
     } catch (error) {

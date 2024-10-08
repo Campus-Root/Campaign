@@ -32,7 +32,6 @@ export const participants = async (req, res) => {
         });
     }
 };
-
 export const visit = async (req, res) => {
     const { visitorId, notes, details } = req.body
     try {

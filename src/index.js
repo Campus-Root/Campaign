@@ -55,12 +55,14 @@ app.use(express.json());
 app.use(morgan("tiny"));
 
 // Route
-app.get("/", (req, res) => {
-  res.send("<h1>Hello World</h1>");
-});
+// app.get("/", (req, res) => {
+//   res.send("<h1>Hello World</h1>");
+// });
 import indexRouter from "./routers/index.js";
 app.use("/api/v1", indexRouter);
 app.post('/webhook/v1/participant-registration',zohoFormsWebhook)
+app.use(express.static(path.join(__dirname, 'build')));
+app.get('/*', (req, res) => res.sendFile(path.join(__dirname, 'build', 'index.html')));
 // Error Handlers
 import { notFoundMiddleware } from "./middleware/not-found.js";
 app.use(notFoundMiddleware);

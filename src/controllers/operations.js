@@ -20,7 +20,7 @@ export const participants = async (req, res) => {
             return res.status(StatusCodes.OK).json({ success: true, message: "Student data fetched successfully", data: student, AlreadyVisitedDetails: visit || null });
         }
         else if (req.user.userType === "Admin") {
-            const users = await UserModel.find({ _id: { $ne: req.user._id } }, "-logs -qrCodeUrl");
+            const users = await UserModel.find({ _id: { $ne: req.user._id } }, "-logs -qrCodeUrl").sort({ createdAt: -1 });
             let Admin = JSON.parse(JSON.stringify(req.user))
             users.forEach(ele => {
                 Admin.visits.push({ participants: [{ ...JSON.parse(JSON.stringify(ele)) }], notes: "null", details: [{ "data": "null" }, { "label": "null", "data": "null" },] })

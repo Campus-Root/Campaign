@@ -7,43 +7,50 @@ import { generateCloudinaryQRCode, maskEmail, maskPhone } from "../utils/workers
 
 
 export const participants = async (req, res) => {
-    const { s } = req.query
+    let { s, page = 1, perPage = 20 } = req.query, skip = (page - 1) * perPage
+    let { filterData } = req.body
+    let totalPages = 0, totalDocs, filter = {}
     try {
         if (s) {
-            const student = await UserModel.findById(new mongoose.Types.ObjectId(s), "-logs -visits -qrCodeUrl");
+            const student = await UserModel.findById(new mongoose.Types.ObjectId(s), "-logs -visits -qrCodeUrl -email -mobileNumber -whatsappNumber");
             if (!student) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "User not found", data: { id: s } });
-            student.email = maskEmail(student.email);
-            student.mobileNumber = maskPhone(student.mobileNumber);
-            student.whatsappNumber = maskPhone(student.whatsappNumber);
             let visit = await VisitModel.findOne({ participants: { $all: [req.user._id, student._id] } });
             return res.status(StatusCodes.OK).json({ success: true, message: "Student data fetched successfully", data: student, AlreadyVisitedDetails: visit || null });
         }
         else if (req.user.userType === "Admin") {
-            const users = await UserModel.find({ _id: { $ne: req.user._id } }, "-logs -qrCodeUrl").sort({ createdAt: -1 });
-            let Admin = JSON.parse(JSON.stringify(req.user))
-            users.forEach(ele => {
-                Admin.visits.push({ participants: [{ ...JSON.parse(JSON.stringify(ele)) }], notes: "null", details: [{ "data": "null" }, { "label": "null", "data": "null" },] })
-            });
-            return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: Admin });
+            filterData.forEach(ele => {
+                if (ele.type === "name") filter.name = { $regex: name, $options: "i" };
+            })
+            filter._id = { $ne: req.user._id }
+            const users = await UserModel.find(filter, "-logs -visits").sort({ createdAt: -1 }).skip(skip).limit(perPage);
+            let visits = users.map(ele => { return { participants: [{ ...JSON.parse(JSON.stringify(ele)) }], notes: "null", details: [{ "label": "null", "data": "null" }, { "label": "null", "data": "null" }] } });
+            return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: { name: req.user.name, email: req.user.email, role: req.user.role, userType: req.user.userType, institutionName: req.user.institutionName, boothNumber: req.user.boothNumber, visits: visits } });
         }
-        await VisitModel.populate(req.user, { path: "visits" });
-        await UserModel.populate(req.user, { path: "visits.participants", select: "-logs -visits" });
-        for (const visit of req.user.visits) {
-            for (const person of visit.participants) {
-                person.email = maskEmail(person.email);
-                person.mobileNumber = maskPhone(person.mobileNumber);
-                person.whatsappNumber = maskPhone(person.whatsappNumber);
+        filter.participants = { $in: req.user._id }
+        for (const ele of filterData) {
+            if (ele.type === "name") {
+                const usrs = await AttendeeModel.find(
+                    { name: { $regex: ele.data[0], $options: "i" } },
+                    "_id"
+                );
+
+                // Combine name filter with the participants condition
+                const userIds = usrs.map((ele) => ele._id);
+                filter.$and = [
+                    { participants: { $in: [req.user._id] } },
+                    { participants: { $in: userIds } }
+                ];
+            } else if (ele.type === "label") {
+                // Add dynamic filter for label type
+                filter[`details.${ele.label}`] = ele.data;
             }
         }
-        return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: req.user });
 
+        let visits = await VisitModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(perPage);
+        await UserModel.populate(visits, { path: "participants", select: "-logs -visits -qrCodeUrl" });
+        return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: { name: req.user.name, email: req.user.email, userType: req.user.userType, role: req.user.role, institutionName: req.user.institutionName, boothNumber: req.user.boothNumber, visits: visits } });
     } catch (error) {
-        // Catch any errors and return an appropriate response
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            success: false,
-            message: "Something went wrong",
-            error: error.message,
-        });
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: "Something went wrong", error: error.message });
     }
 };
 export const visit = async (req, res) => {

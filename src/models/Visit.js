@@ -4,10 +4,7 @@ const VisitSchema = mongoose.Schema(
     {
         participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
         notes: { type: String, trim: true },
-        details: [{
-            label: { type: String },
-            data: { type: String }
-        }]
+        details: { type: Object, trim: true }
     },
     { timestamps: true }
 );

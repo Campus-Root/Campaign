@@ -21,6 +21,7 @@ const whitelist = [
   "http://127.0.0.1:3000",
   "http://localhost:3000",
   "http://localhost:3000/",
+  "https://events.campusroot.com"
 ];
 const corsOptions = {
   origin(origin, callback) {

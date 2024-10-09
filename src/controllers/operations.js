@@ -9,7 +9,6 @@ import { generateCloudinaryQRCode, maskEmail, maskPhone } from "../utils/workers
 export const participants = async (req, res) => {
     const { s } = req.query
     try {
-
         if (s) {
             const student = await UserModel.findById(new mongoose.Types.ObjectId(s), "-logs -visits -qrCodeUrl");
             if (!student) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "User not found", data: { id: s } });

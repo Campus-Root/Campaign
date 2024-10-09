@@ -50,7 +50,17 @@ app.set("trust proxy", 1);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors(corsOptions));
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+        // Other directives you may need for styles, scripts, etc.
+      },
+    },
+  })
+);
 app.use(mongoSanitize());
 app.use(express.json());
 app.use(morgan("tiny"));

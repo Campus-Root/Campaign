@@ -56,8 +56,8 @@ export const visit = async (req, res) => {
         user.whatsappNumber = maskPhone(user.whatsappNumber);
         let visit = await VisitModel.findOne({ participants: { $all: [req.user._id, visitorId] } });
         if (visit) {
-            visit.notes = visit.notes;
-            visit.details = visit.details;
+            visit.notes = notes;
+            visit.details = details;
             await visit.save();
             return res.status(StatusCodes.OK).json({ success: true, message: "Visit processed successfully", data: { visit: visit, user: user } });
         }

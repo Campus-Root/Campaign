@@ -45,7 +45,7 @@ export const participants = async (req, res) => {
                 ];
             } else if (ele.type === "label") {
                 // Add dynamic filter for label type
-                filter[`details.${ele.label}`] = ele.data;
+                filter[`details.${ele.label}`] = ele.data[0];
             }
         }
 

@@ -20,13 +20,14 @@ export const participants = async (req, res) => {
         else if (req.user.userType === "Admin") {
             filterData.forEach(ele => {
                 if (ele.type === "name") filter.name = { $regex: name, $options: "i" };
+                if (ele.type === "user") filter.userType = ele.data
             })
             filter._id = { $ne: req.user._id }
             const users = await UserModel.find(filter, "-logs -visits").sort({ createdAt: -1 }).skip(skip).limit(perPage);
             totalDocs = await UserModel.countDocuments(filter)
             totalPages = Math.ceil(totalDocs / perPage);
             let visits = users.map(ele => { return { participants: [{ ...JSON.parse(JSON.stringify(ele)) }], notes: "null", details: [{ "label": "null", "data": "null" }, { "label": "null", "data": "null" }] } });
-            return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: { name: req.user.name, email: req.user.email, role: req.user.role, userType: req.user.userType, institutionName: req.user.institutionName, boothNumber: req.user.boothNumber, visits: visits, currentPage: page, totalPages: totalPages, totalItems: totalDocs } });
+            return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: { _id: req.user._id, name: req.user.name, email: req.user.email, role: req.user.role, userType: req.user.userType, institutionName: req.user.institutionName, boothNumber: req.user.boothNumber, visits: visits, currentPage: page, totalPages: totalPages, totalItems: totalDocs } });
         }
         filter.participants = { $in: [req.user._id] }
         for (const ele of filterData) {
@@ -52,7 +53,7 @@ export const participants = async (req, res) => {
         totalDocs = await VisitModel.countDocuments(filter)
         totalPages = Math.ceil(totalDocs / perPage);
         await UserModel.populate(visits, { path: "participants", select: "-logs -visits -qrCodeUrl" });
-        return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: { name: req.user.name, email: req.user.email, userType: req.user.userType, role: req.user.role, institutionName: req.user.institutionName, boothNumber: req.user.boothNumber, visits: visits, currentPage: page, totalPages: totalPages, totalItems: totalDocs } });
+        return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: { _id: req.user._id, name: req.user.name, email: req.user.email, userType: req.user.userType, role: req.user.role, institutionName: req.user.institutionName, boothNumber: req.user.boothNumber, visits: visits, currentPage: page, totalPages: totalPages, totalItems: totalDocs } });
     } catch (error) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: "Something went wrong", error: error.message });
     }

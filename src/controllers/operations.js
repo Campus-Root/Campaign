@@ -23,7 +23,7 @@ export const participants = async (req, res) => {
                 if (ele.type === "user") filter.userType = ele.data
             })
             filter._id = { $ne: req.user._id }
-            const users = await UserModel.find(filter, "-logs -visits").sort({ createdAt: -1 }).skip(skip).limit(perPage);
+            const users = await UserModel.find(filter, "-logs -visits").sort({ updatedAt: -1 }).skip(skip).limit(perPage);
             totalDocs = await UserModel.countDocuments(filter)
             totalPages = Math.ceil(totalDocs / perPage);
             let visits = users.map(ele => { return { participants: [{ ...JSON.parse(JSON.stringify(ele)) }], notes: "null", details: [{ "label": "null", "data": "null" }, { "label": "null", "data": "null" }] } });
@@ -49,7 +49,7 @@ export const participants = async (req, res) => {
             }
         }
 
-        let visits = await VisitModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(perPage);
+        let visits = await VisitModel.find(filter).sort({ updatedAt: -1 }).skip(skip).limit(perPage);
         totalDocs = await VisitModel.countDocuments(filter)
         totalPages = Math.ceil(totalDocs / perPage);
         await UserModel.populate(visits, { path: "participants", select: "-logs -visits -qrCodeUrl" });

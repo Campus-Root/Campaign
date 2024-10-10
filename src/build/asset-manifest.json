@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.5eda5992.css",
-    "main.js": "/static/js/main.ca6adcc1.js",
+    "main.css": "/static/css/main.fa30c801.css",
+    "main.js": "/static/js/main.28043f90.js",
     "static/js/453.ed3810f9.chunk.js": "/static/js/453.ed3810f9.chunk.js",
     "static/media/counsellor.png": "/static/media/counsellor.eb9cc10c283d6248460e.png",
     "static/media/NeutrifStudio-Bold.ttf": "/static/media/NeutrifStudio-Bold.2df9cdd5912b23269fd1.ttf",
@@ -10,12 +10,12 @@
     "static/media/standardLoader.gif": "/static/media/standardLoader.b2a8fa3d8baba9fc720f.gif",
     "static/media/CampusrootLogo.png": "/static/media/CampusrootLogo.bb6a8db3a579f4910f3f.png",
     "index.html": "/index.html",
-    "main.5eda5992.css.map": "/static/css/main.5eda5992.css.map",
-    "main.ca6adcc1.js.map": "/static/js/main.ca6adcc1.js.map",
+    "main.fa30c801.css.map": "/static/css/main.fa30c801.css.map",
+    "main.28043f90.js.map": "/static/js/main.28043f90.js.map",
     "453.ed3810f9.chunk.js.map": "/static/js/453.ed3810f9.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.5eda5992.css",
-    "static/js/main.ca6adcc1.js"
+    "static/css/main.fa30c801.css",
+    "static/js/main.28043f90.js"
   ]
 }

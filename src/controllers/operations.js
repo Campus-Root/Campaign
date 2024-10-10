@@ -212,5 +212,5 @@ export const zohoFormsWebhook = async (req, res, next) => {
 </body>
 </html>`
     })
-    res.status(StatusCodes.OK).send('Webhook received successfully');
+   return res.status(StatusCodes.OK).send('Webhook received successfully');
 }

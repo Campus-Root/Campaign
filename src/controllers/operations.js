@@ -4,6 +4,7 @@ import { VisitModel } from "../models/Visit.js";
 import mongoose from "mongoose";
 import { sendWhatsAppMessage } from "../utils/whatsapp.js";
 import { generateCloudinaryQRCode, maskEmail, maskPhone } from "../utils/workers.js";
+import { sendMail } from "../utils/sendEmail.js";
 
 
 export const participants = async (req, res) => {
@@ -118,5 +119,98 @@ export const zohoFormsWebhook = async (req, res, next) => {
     let waResp
     if (user.whatsappNumber) waResp = await sendWhatsAppMessage(user.name, user.whatsappNumber, user.qrCodeUrl);
     if (!waResp.id) waResp = await sendWhatsAppMessage(user.name, user.mobileNumber, user.qrCodeUrl);
+    await sendMail({
+        to: user.email, // list of receivers
+        subject: "Thank You for Attending – Mahabubnagar Study Abroad Education Fair 2024!", // Subject line
+        html: ` <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahabubnagar Study Abroad Education Fair 2024</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        h2 {
+            color: #333;
+        }
+        .highlight {
+            font-weight: bold;
+        }
+
+        .emoji {
+            font-size: 1.2em;
+        }
+
+        .qr-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .qr-section img {
+            max-width: 200px;
+            margin-top: 10px;
+        }
+
+        .contact {
+            margin-top: 20px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <p>Hi <span class="highlight">${user.name}</span>,</p>
+
+        <p>Thank you for attending the <strong>Mahabubnagar Study Abroad Education Fair 2024!</strong> <span
+                class="emoji">🎓✨</span></p>
+        <div class="qr-section">
+            <p>Show the QR code below to exhibitors to let them know who you are:</p>
+            <img src="${user.qrCodeUrl}"
+                alt="Your QR Code">
+        </div>
+        <h2>✅ Here’s what’s happening:</h2>
+
+        <ul>
+            <li>Meet top university delegates from the USA, UK, Canada, Australia, Ireland, New Zealand and European Countries.</li>
+            <li>Explore <strong>₹20 lakh</strong> in scholarships and exclusive loan options.</li>
+            <li>Get expert one-on-one counseling for your study abroad plans.</li>
+        </ul>
+        <br>
+        <p><strong>📅 Event Date:</strong> 11th October 2024<br>
+            <strong>📍 Venue:</strong> Sudarshan Convention, Mahabubnagar<br>
+            📞 <strong>For more info, contact us at : </strong>9154898944
+        </p>
+
+
+        <!-- <div class="contact">
+            
+        </div> -->
+
+        <div class="footer">
+            <p>We’re excited to see you!<br>
+                Best,<br>
+                One Window Team</p>
+        </div>
+    </div>
+</body>
+</html>`
+    })
     res.status(StatusCodes.OK).send('Webhook received successfully');
 }

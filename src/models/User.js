@@ -67,8 +67,7 @@ const ExhibitorSchema = mongoose.Schema({
   boothNumber: { type: String, required: true },
   productsShowcased: [{ type: String }], // List of products being showcased
   institutionName: { type: String, required: true }
-},
-  { timestamps: true });
+});
 export const UserModel = mongoose.model("User", UserSchema);
 export const ExhibitorModel = UserModel.discriminator("Exhibitor", ExhibitorSchema);
 export const AdminModel = UserModel.discriminator("Admin", AdminSchema);

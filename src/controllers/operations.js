@@ -82,7 +82,6 @@ export const visit = async (req, res) => {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: "Something went wrong", error: error.message });
     }
 }
-
 export const zohoFormsWebhook = async (req, res, next) => {
     const user = await AttendeeModel.create({
         name: `${req.body.firstName} ${req.body.lastName}`,
@@ -212,5 +211,9 @@ export const zohoFormsWebhook = async (req, res, next) => {
 </body>
 </html>`
     })
-   return res.status(StatusCodes.OK).send('Webhook received successfully');
+    return res.status(StatusCodes.OK).send('Webhook received successfully');
+}
+export const changePassword = async (req, res) => {
+    const { Id, newPassword } = req.body;
+    await UserModel.findByIdAndUpdate(Id, { $set: { password: newPassword } });
 }

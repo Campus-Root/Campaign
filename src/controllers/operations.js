@@ -20,8 +20,8 @@ export const participants = async (req, res) => {
         }
         else if (req.user.userType === "Admin") {
             filterData.forEach(ele => {
-                if (ele.type === "name") filter.name = { $regex: name, $options: "i" };
-                if (ele.type === "user") filter.userType = ele.data
+                if (ele.type === "name") filter.name = { $regex: ele.data[0], $options: "i" };
+                if (ele.type === "userType") filter.userType = ele.data[0]
             })
             filter._id = { $ne: req.user._id }
             const users = await UserModel.find(filter, "-logs -visits").sort({ updatedAt: -1 }).skip(skip).limit(perPage);

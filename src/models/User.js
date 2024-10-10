@@ -52,20 +52,17 @@ const AttendeeSchema = mongoose.Schema({
   ielts: { type: String },
   duolingo: { type: String },
   leadSource: { type: String },
-},
-  { timestamps: true });
+});
 const OrganizerSchema = mongoose.Schema({
   role: { type: String, enum: { values: Object.values(OrganizerRoleEnum), message: "Invalid role" } },
   institutionName: { type: String, required: true },
   // eventName: { type: String, required: true },
   eventsManaged: [{ type: String }] // List of events they have organized
-},
-  { timestamps: true });
+});
 const AdminSchema = mongoose.Schema({
   role: { type: String, default: "Admin" },
   permissions: [{ type: String }] // Permissions like managing users, events, etc.
-},
-  { timestamps: true });
+});
 const ExhibitorSchema = mongoose.Schema({
   boothNumber: { type: String, required: true },
   productsShowcased: [{ type: String }], // List of products being showcased

@@ -27,21 +27,21 @@ export const participants = async (req, res) => {
             const users = await UserModel.find(filter, "-logs -visits -mobileNumber -whatsappNumber").sort({ updatedAt: -1 }).skip(skip).limit(perPage);
             totalDocs = await UserModel.countDocuments(filter)
             totalPages = Math.ceil(totalDocs / perPage);
-            let visits = users.map(ele => { return { participants: [{ ...JSON.parse(JSON.stringify(ele)) }], notes: "null", details: [{ "label": "null", "data": "null" }, { "label": "null", "data": "null" }] } });
+            let visits = users.map(ele => { return { participants: [{ ...JSON.parse(JSON.stringify(ele)) }], notes: "null", details: {} } });
             return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: { _id: req.user._id, name: req.user.name, email: req.user.email, role: req.user.role, userType: req.user.userType, institutionName: req.user.institutionName, boothNumber: req.user.boothNumber, visits: visits, currentPage: page, totalPages: totalPages, totalItems: totalDocs } });
         }
-        // else if(req.user.userType==="Organizer"&&req.user.role==="Reception"){
-        //     filterData.forEach(ele => {
-        //         if (ele.type === "name") filter.name = { $regex: ele.data[0], $options: "i" };
-        //         if (ele.type === "userType") filter.userType = ele.data[0]
-        //     })
-        //     filter._id = { $ne: req.user._id }
-        //     const users = await AttendeeModel.find(filter, "-logs -visits -mobileNumber -whatsappNumber").sort({ updatedAt: -1 }).skip(skip).limit(perPage);
-        //     totalDocs = await AttendeeModel.countDocuments(filter)
-        //     totalPages = Math.ceil(totalDocs / perPage);
-        //     let visits = users.map(ele => { return { participants: [{ ...JSON.parse(JSON.stringify(ele)) }], notes: "null", details: [{ "label": "null", "data": "null" }, { "label": "null", "data": "null" }] } });
-        //     return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: { _id: req.user._id, name: req.user.name, email: req.user.email, role: req.user.role, userType: req.user.userType, institutionName: req.user.institutionName, boothNumber: req.user.boothNumber, visits: visits, currentPage: page, totalPages: totalPages, totalItems: totalDocs } });
-        // }
+        else if(req.user.userType==="Organizer"&&req.user.role==="Reception"){
+            filterData.forEach(ele => {
+                if (ele.type === "name") filter.name = { $regex: ele.data[0], $options: "i" };
+                if (ele.type === "userType") filter.userType = ele.data[0]
+            })
+            filter._id = { $ne: req.user._id }
+            const users = await AttendeeModel.find(filter, "-logs -visits -mobileNumber -whatsappNumber").sort({ updatedAt: -1 }).skip(skip).limit(perPage);
+            totalDocs = await AttendeeModel.countDocuments(filter)
+            totalPages = Math.ceil(totalDocs / perPage);
+            let visits = users.map(ele => { return { participants: [{ ...JSON.parse(JSON.stringify(ele)) }], notes: "null", details: { "interested": "","prospective":"" } } });
+            return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: { _id: req.user._id, name: req.user.name, email: req.user.email, role: req.user.role, userType: req.user.userType, institutionName: req.user.institutionName, boothNumber: req.user.boothNumber, visits: visits, currentPage: page, totalPages: totalPages, totalItems: totalDocs } });
+        }
         filter.participants = { $in: [req.user._id] }
         for (const ele of filterData) {
             if (ele.type === "name") {

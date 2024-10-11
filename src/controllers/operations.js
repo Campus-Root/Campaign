@@ -211,7 +211,7 @@ export const zohoFormsWebhook = async (req, res, next) => {
 </body>
 </html>`
     })
-    return res.status(StatusCodes.OK).send('Webhook received successfully');
+    res.status(StatusCodes.OK).send('Webhook received successfully');
 }
 export const changePassword = async (req, res) => {
     const { Id, newPassword } = req.body;

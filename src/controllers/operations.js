@@ -24,24 +24,24 @@ export const participants = async (req, res) => {
                 if (ele.type === "userType") filter.userType = ele.data[0]
             })
             filter._id = { $ne: req.user._id }
-            const users = await UserModel.find(filter, "-logs -visits").sort({ updatedAt: -1 }).skip(skip).limit(perPage);
+            const users = await UserModel.find(filter, "-logs -visits -mobileNumber -whatsappNumber").sort({ updatedAt: -1 }).skip(skip).limit(perPage);
             totalDocs = await UserModel.countDocuments(filter)
             totalPages = Math.ceil(totalDocs / perPage);
             let visits = users.map(ele => { return { participants: [{ ...JSON.parse(JSON.stringify(ele)) }], notes: "null", details: [{ "label": "null", "data": "null" }, { "label": "null", "data": "null" }] } });
             return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: { _id: req.user._id, name: req.user.name, email: req.user.email, role: req.user.role, userType: req.user.userType, institutionName: req.user.institutionName, boothNumber: req.user.boothNumber, visits: visits, currentPage: page, totalPages: totalPages, totalItems: totalDocs } });
         }
-        // else if(req.user.userType==="Organizer"&&req.user.role==="Reception"){
-        //     filterData.forEach(ele => {
-        //         if (ele.type === "name") filter.name = { $regex: ele.data[0], $options: "i" };
-        //         if (ele.type === "userType") filter.userType = ele.data[0]
-        //     })
-        //     filter._id = { $ne: req.user._id }
-        //     const users = await AttendeeModel.find(filter, "-logs -visits").sort({ updatedAt: -1 }).skip(skip).limit(perPage);
-        //     totalDocs = await AttendeeModel.countDocuments(filter)
-        //     totalPages = Math.ceil(totalDocs / perPage);
-        //     let visits = users.map(ele => { return { participants: [{ ...JSON.parse(JSON.stringify(ele)) }], notes: "null", details: [{ "label": "null", "data": "null" }, { "label": "null", "data": "null" }] } });
-        //     return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: { _id: req.user._id, name: req.user.name, email: req.user.email, role: req.user.role, userType: req.user.userType, institutionName: req.user.institutionName, boothNumber: req.user.boothNumber, visits: visits, currentPage: page, totalPages: totalPages, totalItems: totalDocs } });
-        // }
+        else if(req.user.userType==="Organizer"&&req.user.role==="Reception"){
+            filterData.forEach(ele => {
+                if (ele.type === "name") filter.name = { $regex: ele.data[0], $options: "i" };
+                if (ele.type === "userType") filter.userType = ele.data[0]
+            })
+            filter._id = { $ne: req.user._id }
+            const users = await AttendeeModel.find(filter, "-logs -visits -mobileNumber -whatsappNumber").sort({ updatedAt: -1 }).skip(skip).limit(perPage);
+            totalDocs = await AttendeeModel.countDocuments(filter)
+            totalPages = Math.ceil(totalDocs / perPage);
+            let visits = users.map(ele => { return { participants: [{ ...JSON.parse(JSON.stringify(ele)) }], notes: "null", details: [{ "label": "null", "data": "null" }, { "label": "null", "data": "null" }] } });
+            return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: { _id: req.user._id, name: req.user.name, email: req.user.email, role: req.user.role, userType: req.user.userType, institutionName: req.user.institutionName, boothNumber: req.user.boothNumber, visits: visits, currentPage: page, totalPages: totalPages, totalItems: totalDocs } });
+        }
         filter.participants = { $in: [req.user._id] }
         for (const ele of filterData) {
             if (ele.type === "name") {
@@ -65,7 +65,7 @@ export const participants = async (req, res) => {
         let visits = await VisitModel.find(filter).sort({ updatedAt: -1 }).skip(skip).limit(perPage);
         totalDocs = await VisitModel.countDocuments(filter)
         totalPages = Math.ceil(totalDocs / perPage);
-        await UserModel.populate(visits, { path: "participants", select: "-logs -visits -qrCodeUrl" });
+        await UserModel.populate(visits, { path: "participants", select: "-logs -visits -mobileNumber -whatsappNumber -qrCodeUrl" });
         return res.status(StatusCodes.OK).json({ success: true, message: "User visits fetched successfully", data: { _id: req.user._id, name: req.user.name, email: req.user.email, userType: req.user.userType, role: req.user.role, institutionName: req.user.institutionName, boothNumber: req.user.boothNumber, visits: visits, currentPage: page, totalPages: totalPages, totalItems: totalDocs } });
     } catch (error) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: "Something went wrong", error: error.message });
